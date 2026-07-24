@@ -9,12 +9,11 @@
     }
   },
   "servers": [
-    { "url": "https://anime-backend-hono.vercel.app", "description": "Production Server" },
-    { "url": "http://localhost:3001", "description": "Development Server" }
+    { "url": "https://api.aniverse.nl", "description": "Production Server" },
   ],
   "tags": [
-    { "name": "Anime", "description": "Operasi terkait data Anime (publik)" },
-    { "name": "Episode", "description": "Operasi terkait data Episode (publik)" }
+    { "name": "Anime", "description": "Operasi terkait data Anime" },
+    { "name": "Episode", "description": "Operasi terkait data Episode" }
   ],
   "paths": {
     "/anime": {
@@ -286,14 +285,14 @@
     "/anime/{slugOrId}": {
       "get": {
         "tags": ["Anime"],
-        "summary": "Get detail anime by slug atau ID",
-        "description": "Mengambil detail lengkap satu anime beserta daftar episode-nya. Parameter `slugOrId` bisa berupa **slug** (misal: `naruto-shippuden`) atau **MongoDB ObjectId** (24 karakter hex).",
+        "summary": "Get detail anime by slug",
+        "description": "Mengambil detail lengkap satu anime beserta daftar episode-nya. Parameter `slug` berupa misal: `naruto-shippuden`.",
         "operationId": "getAnimeBySlugOrId",
         "parameters": [
           {
-            "name": "slugOrId",
+            "name": "slug",
             "in": "path",
-            "description": "Slug atau MongoDB ObjectId dari anime",
+            "description": "Slug dari anime",
             "required": true,
             "schema": { "type": "string", "example": "naruto-shippuden" }
           }
