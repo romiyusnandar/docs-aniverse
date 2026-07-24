@@ -9,7 +9,7 @@
     }
   },
   "servers": [
-    { "url": "https://api.aniverse.nl", "description": "Production Server" },
+    { "url": "https://api.aniverse.nl", "description": "Production Server" }
   ],
   "tags": [
     { "name": "Anime", "description": "Operasi terkait data Anime" },
