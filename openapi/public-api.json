@@ -1,0 +1,562 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Anime Stream API",
+    "description": "## Anime Stream REST API Documentation\n\nAPI publik untuk mengakses data anime dan episode. Semua endpoint di dokumentasi ini bersifat **publik** dan tidak memerlukan autentikasi.\n\n### Base URL\n- **Production:** `https://anime-backend-hono.vercel.app`\n- **Development:** `http://localhost:3001`\n\n### Catatan\n- Semua endpoint di sini bersifat **publik** (tidak perlu autentikasi)\n- `slugOrId` bisa berupa slug (misal: `naruto`) atau MongoDB ObjectId (24 karakter hex)",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Noname"
+    }
+  },
+  "servers": [
+    { "url": "https://anime-backend-hono.vercel.app", "description": "Production Server" },
+    { "url": "http://localhost:3001", "description": "Development Server" }
+  ],
+  "tags": [
+    { "name": "Anime", "description": "Operasi terkait data Anime (publik)" },
+    { "name": "Episode", "description": "Operasi terkait data Episode (publik)" }
+  ],
+  "paths": {
+    "/anime": {
+      "get": {
+        "tags": ["Anime"],
+        "summary": "Get semua anime",
+        "description": "Mengambil daftar semua anime dengan pagination. Bisa difilter berdasarkan status, hari tayang, dan genre.",
+        "operationId": "getAllAnime",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Nomor halaman (default: 1)",
+            "required": false,
+            "schema": { "type": "integer", "default": 1, "minimum": 1, "example": 1 }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Jumlah item per halaman (default: 24)",
+            "required": false,
+            "schema": { "type": "integer", "default": 24, "minimum": 1, "maximum": 100, "example": 24 }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter berdasarkan status anime",
+            "required": false,
+            "schema": { "type": "string", "enum": ["All", "Ongoing", "Completed", "Upcoming"], "example": "Ongoing" }
+          },
+          {
+            "name": "day",
+            "in": "query",
+            "description": "Filter berdasarkan hari tayang (gunakan nama hari dalam Bahasa Indonesia)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["All", "Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Random"],
+              "example": "Senin"
+            }
+          },
+          {
+            "name": "genre",
+            "in": "query",
+            "description": "Filter berdasarkan genre anime",
+            "required": false,
+            "schema": { "type": "string", "example": "Action" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berhasil mengambil daftar anime",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/AnimeListItem" } },
+                    "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+                  }
+                },
+                "example": {
+                  "data": [
+                    {
+                      "_id": "65f1a2b3c4d5e6f7a8b9c0d1",
+                      "title_english": "Naruto Shippuden",
+                      "title_japanese": "ナルト- 疾風伝",
+                      "poster": "https://cdn.example.com/naruto.jpg",
+                      "slug": "naruto-shippuden",
+                      "rating": "8.7",
+                      "type": "TV",
+                      "status": "Completed",
+                      "broadcast_day": "Random",
+                      "release_date": "2007-02-15T00:00:00.000Z",
+                      "total_episodes": "500"
+                    }
+                  ],
+                  "meta": { "current_page": 1, "total_pages": 10, "total_items": 240, "limit": 24 }
+                }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+
+    "/anime/search": {
+      "get": {
+        "tags": ["Anime"],
+        "summary": "Cari anime",
+        "description": "Mencari anime berdasarkan judul (bahasa Inggris atau Jepang). Pencarian bersifat fuzzy (toleran typo kecil, mis. 'nartuo' tetap menemukan judul yang salah eja 1-2 huruf) dan case-insensitive. Mengembalikan maksimal 10 hasil, diurutkan dari yang paling relevan.",
+        "operationId": "searchAnime",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Kata kunci pencarian (judul Inggris atau Jepang)",
+            "required": true,
+            "schema": { "type": "string", "example": "Naruto" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Hasil pencarian anime (maks. 10 item)",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/AnimeListItem" } },
+                "example": [
+                  {
+                    "_id": "65f1a2b3c4d5e6f7a8b9c0d1",
+                    "title_english": "Naruto",
+                    "title_japanese": "ナルト",
+                    "poster": "https://cdn.example.com/naruto.jpg",
+                    "slug": "naruto",
+                    "rating": "7.9",
+                    "type": "TV",
+                    "status": "Completed",
+                    "broadcast_day": "Random",
+                    "release_date": "2002-10-03T00:00:00.000Z",
+                    "total_episodes": "220"
+                  }
+                ]
+              }
+            }
+          },
+          "400": {
+            "description": "Query parameter tidak diberikan",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MessageResponse" },
+                "example": { "message": "Gunakan query parameter (?q=...)" }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+
+    "/anime/top": {
+      "get": {
+        "tags": ["Anime"],
+        "summary": "Get top anime",
+        "description": "Mengambil daftar anime Ongoing dengan rating tertinggi, diurutkan secara descending. Hanya anime dengan status **Ongoing** yang ditampilkan.",
+        "operationId": "getTopAnime",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Jumlah anime yang dikembalikan (default: 10)",
+            "required": false,
+            "schema": { "type": "integer", "default": 10, "minimum": 1, "maximum": 50, "example": 10 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daftar top anime berdasarkan rating",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/AnimeListItem" } },
+                "example": [
+                  {
+                    "_id": "65f1a2b3c4d5e6f7a8b9c0d2",
+                    "title_english": "Fullmetal Alchemist: Brotherhood",
+                    "title_japanese": "鋼の錬金術師 BROTHERHOOD",
+                    "poster": "https://cdn.example.com/fmab.jpg",
+                    "slug": "fullmetal-alchemist-brotherhood",
+                    "rating": "9.1",
+                    "type": "TV",
+                    "status": "Ongoing",
+                    "broadcast_day": "Minggu",
+                    "release_date": "2009-04-05T00:00:00.000Z",
+                    "total_episodes": "5"
+                  }
+                ]
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+
+    "/anime/ongoing": {
+      "get": {
+        "tags": ["Anime"],
+        "summary": "Get anime yang sedang tayang (Ongoing)",
+        "description": "Mengambil seluruh anime dengan status **Ongoing**, diurutkan berdasarkan hari tayang (broadcast_day). Tidak ada pagination — mengembalikan semua data sekaligus.",
+        "operationId": "getOngoingAnime",
+        "responses": {
+          "200": {
+            "description": "Daftar anime Ongoing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "ongoing": { "type": "array", "items": { "$ref": "#/components/schemas/AnimeListItem" } } }
+                },
+                "example": {
+                  "ongoing": [
+                    {
+                      "_id": "65f1a2b3c4d5e6f7a8b9c0d3",
+                      "title_english": "One Piece",
+                      "title_japanese": "ワンピース",
+                      "poster": "https://cdn.example.com/onepiece.jpg",
+                      "slug": "one-piece",
+                      "rating": "8.8",
+                      "type": "TV",
+                      "broadcast_day": "Minggu",
+                      "release_date": "1999-10-20T00:00:00.000Z",
+                      "total_episodes": "1100",
+                      "is_new_episode": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+
+    "/anime/today": {
+      "get": {
+        "tags": ["Anime"],
+        "summary": "Get anime yang tayang hari ini",
+        "description": "Mengambil anime Ongoing yang jadwal tayangnya sesuai dengan hari ini (berdasarkan zona waktu **WIB / Asia/Jakarta**). Mengembalikan nama hari saat ini beserta daftar anime yang tayang.",
+        "operationId": "getAnimeToday",
+        "responses": {
+          "200": {
+            "description": "Anime yang tayang hari ini",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "day": { "type": "string", "description": "Nama hari saat ini dalam Bahasa Indonesia", "example": "Minggu" },
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/AnimeListItem" } }
+                  }
+                },
+                "example": {
+                  "day": "Minggu",
+                  "data": [
+                    {
+                      "_id": "65f1a2b3c4d5e6f7a8b9c0d3",
+                      "title_english": "One Piece",
+                      "title_japanese": "ワンピース",
+                      "poster": "https://cdn.example.com/onepiece.jpg",
+                      "slug": "one-piece",
+                      "rating": "8.8",
+                      "type": "TV",
+                      "broadcast_day": "Minggu",
+                      "release_date": "1999-10-20T00:00:00.000Z",
+                      "total_episodes": "1100",
+                      "is_new_episode": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+
+    "/anime/{slugOrId}": {
+      "get": {
+        "tags": ["Anime"],
+        "summary": "Get detail anime by slug atau ID",
+        "description": "Mengambil detail lengkap satu anime beserta daftar episode-nya. Parameter `slugOrId` bisa berupa **slug** (misal: `naruto-shippuden`) atau **MongoDB ObjectId** (24 karakter hex).",
+        "operationId": "getAnimeBySlugOrId",
+        "parameters": [
+          {
+            "name": "slugOrId",
+            "in": "path",
+            "description": "Slug atau MongoDB ObjectId dari anime",
+            "required": true,
+            "schema": { "type": "string", "example": "naruto-shippuden" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail anime beserta daftar episode",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/AnimeDetail" },
+                    "episodes": { "type": "array", "items": { "$ref": "#/components/schemas/EpisodeSummary" } },
+                    "related_anime": {
+                      "type": "array",
+                      "description": "Season/sequel/prequel lain dengan franchise_id yang sama (kosong jika anime tidak punya franchise_id)",
+                      "items": { "$ref": "#/components/schemas/AnimeListItem" }
+                    }
+                  }
+                },
+                "example": {
+                  "data": {
+                    "_id": "65f1a2b3c4d5e6f7a8b9c0d1",
+                    "title_english": "Naruto Shippuden",
+                    "title_japanese": "ナルト- 疾風伝",
+                    "slug": "naruto-shippuden",
+                    "rating": "8.7",
+                    "producers": ["TV Tokyo", "Pierrot"],
+                    "type": "TV",
+                    "status": "Completed",
+                    "broadcast_day": "Random",
+                    "release_date": "2007-02-15T00:00:00.000Z",
+                    "studio": "Pierrot",
+                    "genres": ["Action", "Adventure", "Fantasy"],
+                    "poster": "https://cdn.example.com/naruto-shippuden.jpg",
+                    "synopsis": "Dua setengah tahun berlalu sejak Naruto pergi berlatih...",
+                    "franchise_id": "naruto",
+                    "total_episodes": "500"
+                  },
+                  "episodes": [
+                    {
+                      "_id": "65f1a2b3c4d5e6f7a8b9c0e1",
+                      "episode_number": 500,
+                      "title": "Episode 500: The Message",
+                      "streams": [{ "server_name": "Server 1", "url": "https://stream.example.com/ep500", "quality": "720p" }],
+                      "thumbnail": "https://cdn.example.com/ep500-thumb.jpg"
+                    }
+                  ],
+                  "related_anime": [
+                    {
+                      "_id": "65f1a2b3c4d5e6f7a8b9c0d2",
+                      "title_english": "Naruto",
+                      "title_japanese": "ナルト",
+                      "slug": "naruto",
+                      "type": "TV",
+                      "status": "Completed",
+                      "release_date": "2002-10-03T00:00:00.000Z"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Anime tidak ditemukan",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "Anime tidak ditemukan" }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+
+    "/episode/{id}": {
+      "get": {
+        "tags": ["Episode"],
+        "summary": "Get detail episode by ID",
+        "description": "Mengambil detail satu episode berdasarkan MongoDB ObjectId, termasuk informasi anime terkait (judul) dan daftar server streaming yang tersedia.",
+        "operationId": "getEpisodeById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "MongoDB ObjectId dari episode",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^[0-9a-fA-F]{24}$", "example": "65f1a2b3c4d5e6f7a8b9c0e1" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail episode beserta server streaming",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/EpisodeDetail" },
+                "example": {
+                  "_id": "65f1a2b3c4d5e6f7a8b9c0e1",
+                  "anime_id": { "_id": "65f1a2b3c4d5e6f7a8b9c0d1", "title_english": "Naruto Shippuden" },
+                  "episode_number": 500,
+                  "title": "Episode 500: The Message",
+                  "thumbnail": "https://cdn.example.com/ep500-thumb.jpg",
+                  "streams": [
+                    { "server_name": "Server 1", "url": "https://stream.example.com/ep500-hd", "quality": "720p" },
+                    { "server_name": "Server 2", "url": "https://stream.example.com/ep500-sd", "quality": "480p" }
+                  ],
+                  "created_at": "2024-03-15T08:30:00.000Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID tidak valid",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "Invalid ID" }
+              }
+            }
+          },
+          "404": {
+            "description": "Episode tidak ditemukan",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "Episode not found" }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    }
+  },
+
+  "components": {
+    "schemas": {
+      "AnimeListItem": {
+        "type": "object",
+        "description": "Data anime ringkas yang digunakan pada listing/daftar",
+        "properties": {
+          "_id": { "type": "string", "description": "MongoDB ObjectId", "example": "65f1a2b3c4d5e6f7a8b9c0d1" },
+          "title_english": { "type": "string", "description": "Judul anime dalam bahasa Inggris", "example": "Naruto Shippuden" },
+          "title_japanese": { "type": "string", "description": "Judul anime dalam bahasa Jepang", "example": "ナルト- 疾風伝" },
+          "poster": { "type": "string", "format": "uri", "description": "URL gambar poster anime", "example": "https://cdn.example.com/naruto.jpg" },
+          "slug": { "type": "string", "description": "Slug unik untuk URL-friendly", "example": "naruto-shippuden" },
+          "rating": { "type": "string", "description": "Rating anime (1.0 - 10.0) atau 'N/A'", "example": "8.7" },
+          "type": { "type": "string", "description": "Tipe anime", "enum": ["TV", "Movie", "OVA", "Special", "ONA"], "example": "TV" },
+          "status": { "type": "string", "description": "Status tayang", "enum": ["Ongoing", "Completed", "Upcoming"], "example": "Completed" },
+          "broadcast_day": {
+            "type": "string",
+            "description": "Hari tayang (Bahasa Indonesia)",
+            "enum": ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Random"],
+            "example": "Minggu"
+          },
+          "release_date": { "type": "string", "format": "date-time", "description": "Tanggal rilis", "example": "2007-02-15T00:00:00.000Z" },
+          "total_episodes": { "type": "string", "description": "Total episode yang sudah ada (dihitung dari database), 'N/A' jika belum ada", "example": "500" },
+          "is_new_episode": {
+            "type": "boolean",
+            "description": "True jika anime berstatus Ongoing dan ada episode baru diupload dalam 5 hari terakhir. Hanya diisi pada endpoint yang relevan (list anime, ongoing, release-today, detail anime); di endpoint lain field ini tidak ada.",
+            "example": true
+          }
+        }
+      },
+
+      "AnimeDetail": {
+        "type": "object",
+        "description": "Data anime lengkap dengan semua field",
+        "allOf": [{ "$ref": "#/components/schemas/AnimeListItem" }],
+        "properties": {
+          "producers": { "type": "array", "items": { "type": "string" }, "description": "Daftar produser anime", "example": ["TV Tokyo", "Pierrot"] },
+          "studio": { "type": "string", "description": "Studio animasi", "example": "Pierrot" },
+          "genres": { "type": "array", "items": { "type": "string" }, "description": "Daftar genre anime", "example": ["Action", "Adventure", "Fantasy"] },
+          "synopsis": { "type": "string", "description": "Sinopsis anime", "example": "Dua setengah tahun berlalu sejak Naruto pergi berlatih..." },
+          "franchise_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "Pengelompokan season/sequel/prequel dari franchise yang sama. Anime dengan franchise_id sama akan muncul sebagai related anime",
+            "example": "naruto"
+          },
+          "created_at": { "type": "string", "format": "date-time", "description": "Tanggal data dibuat", "example": "2024-01-01T00:00:00.000Z" }
+        }
+      },
+
+      "EpisodeSummary": {
+        "type": "object",
+        "description": "Data episode ringkas yang tampil di halaman detail anime",
+        "properties": {
+          "_id": { "type": "string", "description": "MongoDB ObjectId episode", "example": "65f1a2b3c4d5e6f7a8b9c0e1" },
+          "episode_number": { "type": "number", "description": "Nomor episode, boleh desimal untuk episode selingan/spesial (mis. 24.5)", "example": 500 },
+          "title": { "type": "string", "description": "Judul episode", "example": "Episode 500: The Message" },
+          "thumbnail": { "type": "string", "format": "uri", "description": "URL thumbnail episode", "example": "https://cdn.example.com/ep500-thumb.jpg" },
+          "streams": { "type": "array", "items": { "$ref": "#/components/schemas/Stream" }, "description": "Daftar server streaming" }
+        }
+      },
+
+      "EpisodeDetail": {
+        "type": "object",
+        "description": "Data episode lengkap dengan populate anime",
+        "properties": {
+          "_id": { "type": "string", "description": "MongoDB ObjectId episode", "example": "65f1a2b3c4d5e6f7a8b9c0e1" },
+          "anime_id": {
+            "type": "object",
+            "description": "Referensi anime (ter-populate dengan judul)",
+            "properties": {
+              "_id": { "type": "string", "example": "65f1a2b3c4d5e6f7a8b9c0d1" },
+              "title_english": { "type": "string", "example": "Naruto Shippuden" }
+            }
+          },
+          "episode_number": { "type": "number", "description": "Nomor episode, boleh desimal untuk episode selingan/spesial (mis. 24.5)", "example": 500 },
+          "title": { "type": "string", "description": "Judul episode", "example": "Episode 500: The Message" },
+          "thumbnail": { "type": "string", "format": "uri", "description": "URL thumbnail episode", "example": "https://cdn.example.com/ep500-thumb.jpg" },
+          "streams": { "type": "array", "items": { "$ref": "#/components/schemas/Stream" }, "description": "Daftar server streaming" },
+          "created_at": { "type": "string", "format": "date-time", "description": "Tanggal episode ditambahkan", "example": "2024-03-15T08:30:00.000Z" }
+        }
+      },
+
+      "Stream": {
+        "type": "object",
+        "description": "Informasi server streaming untuk satu episode",
+        "required": ["server_name", "url"],
+        "properties": {
+          "server_name": { "type": "string", "description": "Nama server streaming", "example": "Server 1" },
+          "url": { "type": "string", "format": "uri", "description": "URL streaming video", "example": "https://stream.example.com/ep500-hd" },
+          "quality": { "type": "string", "description": "Kualitas video", "example": "720p", "default": "480p" }
+        }
+      },
+
+      "PaginationMeta": {
+        "type": "object",
+        "description": "Metadata pagination",
+        "properties": {
+          "current_page": { "type": "integer", "description": "Halaman saat ini", "example": 1 },
+          "total_pages": { "type": "integer", "description": "Total halaman", "example": 10 },
+          "total_items": { "type": "integer", "description": "Total item keseluruhan", "example": 240 },
+          "limit": { "type": "integer", "description": "Jumlah item per halaman", "example": 24 }
+        }
+      },
+
+      "ErrorResponse": {
+        "type": "object",
+        "properties": { "error": { "type": "string", "description": "Pesan error", "example": "Anime tidak ditemukan" } }
+      },
+
+      "MessageResponse": {
+        "type": "object",
+        "properties": { "message": { "type": "string", "description": "Pesan informatif", "example": "Gunakan query parameter (?q=...)" } }
+      }
+    },
+
+    "responses": {
+      "InternalServerError": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": { "error": "Something went wrong" }
+          }
+        }
+      }
+    }
+  }
+}

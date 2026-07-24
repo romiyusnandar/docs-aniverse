@@ -1,0 +1,41 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: #2e8555;
+  --ifm-color-primary-dark: #29784c;
+  --ifm-color-primary-darker: #277148;
+  --ifm-color-primary-darkest: #205d3b;
+  --ifm-color-primary-light: #33925d;
+  --ifm-color-primary-lighter: #359962;
+  --ifm-color-primary-lightest: #3cad6e;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+/*
+ * swagger-ui-dist ships its own `html.dark-mode` dark CSS that toggles based
+ * on the OS/browser color-scheme preference, independently of Docusaurus
+ * (which is pinned to light mode only, see colorMode in docusaurus.config.ts).
+ * Left unchecked, the version/OAS badges can end up with white text on a
+ * white background when the OS prefers dark. Pin the colors so they're
+ * always readable.
+ *
+ * The `html body` prefix below is load-bearing: without it, this selector is
+ * textually identical to swagger-ui-dist's own rule and the production CSS
+ * minifier (cssnano) merges/drops the two, silently discarding !important.
+ */
+html body .swagger-ui .info .title small {
+  background: #7d8492 !important;
+}
+html body .swagger-ui .info .title small.version-stamp {
+  background-color: #89bf04 !important;
+}
+html body .swagger-ui .info .title small pre {
+  color: #fff !important;
+  background: none !important;
+}
