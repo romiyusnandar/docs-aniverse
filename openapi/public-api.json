@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Anime Stream API",
-    "description": "## Anime Stream REST API Documentation\n\nAPI publik untuk mengakses data anime dan episode. Semua endpoint di dokumentasi ini bersifat **publik** dan tidak memerlukan autentikasi.\n\n### Base URL\n- **Production:** `https://anime-backend-hono.vercel.app`\n- **Development:** `http://localhost:3001`\n\n### Catatan\n- Semua endpoint di sini bersifat **publik** (tidak perlu autentikasi)\n- `slugOrId` bisa berupa slug (misal: `naruto`) atau MongoDB ObjectId (24 karakter hex)",
+    "description": "## Anime Stream REST API Documentation\n\nAPI publik untuk mengakses data anime dan episode. Semua endpoint di dokumentasi ini bersifat **publik** dan tidak memerlukan autentikasi.\n\n### Base URL\n- **Production:** `https://api.aniverse.nl` \n\n### Catatan\n- Semua endpoint di sini bersifat **publik** (tidak perlu autentikasi)\n- `slug` bisa berupa slug (misal: `naruto`)",
     "version": "1.0.0",
     "contact": {
       "name": "Noname"
@@ -282,7 +282,7 @@
       }
     },
 
-    "/anime/{slugOrId}": {
+    "/anime/{slug}": {
       "get": {
         "tags": ["Anime"],
         "summary": "Get detail anime by slug",
