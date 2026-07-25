@@ -42,7 +42,7 @@
             "in": "query",
             "description": "Filter berdasarkan status anime",
             "required": false,
-            "schema": { "type": "string", "enum": ["All", "Ongoing", "Completed", "Upcoming"], "example": "Ongoing" }
+            "schema": { "type": "string", "enum": ["All", "Ongoing", "Completed", "Upcoming"], "example": "All" }
           },
           {
             "name": "day",
@@ -60,7 +60,7 @@
             "in": "query",
             "description": "Filter berdasarkan genre anime",
             "required": false,
-            "schema": { "type": "string", "example": "Action" }
+            "schema": { "type": "string", "example": "Fantasy" }
           }
         ],
         "responses": {
@@ -113,7 +113,7 @@
             "in": "query",
             "description": "Kata kunci pencarian (judul Inggris atau Jepang)",
             "required": true,
-            "schema": { "type": "string", "example": "Naruto" }
+            "schema": { "type": "string", "example": "Kimetsu No Yaiba" }
           }
         ],
         "responses": {
@@ -286,7 +286,7 @@
       "get": {
         "tags": ["Anime"],
         "summary": "Get detail anime by slug",
-        "description": "Mengambil detail lengkap satu anime beserta daftar episode-nya. Parameter `slug` berupa misal: `naruto-shippuden`.",
+        "description": "Mengambil detail lengkap satu anime beserta daftar episode-nya. Parameter `slug` berupa misal: `demon-slayer`.",
         "operationId": "getAnimeBySlugOrId",
         "parameters": [
           {
@@ -294,7 +294,7 @@
             "in": "path",
             "description": "Slug dari anime",
             "required": true,
-            "schema": { "type": "string", "example": "naruto-shippuden" }
+            "schema": { "type": "string", "example": "demon-slayer" }
           }
         ],
         "responses": {
