@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Anime Stream API",
-    "description": "## Anime Stream REST API Documentation\n\nAPI publik untuk mengakses data anime dan episode. Semua endpoint di dokumentasi ini bersifat **publik** dan tidak memerlukan autentikasi.\n\n### Base URL\n- **Production:** `https://api.aniverse.nl` \n\n### Catatan\n- Semua endpoint di sini bersifat **publik** (tidak perlu autentikasi)\n- `slug` bisa berupa slug (misal: `naruto`)",
+    "description": "## Anime Stream REST API Documentation\n\nAPI publik untuk mengakses data anime dan episode. Semua endpoint di dokumentasi ini bersifat **publik** dan tidak memerlukan autentikasi.\n\n### Base URL\n- **Production:** `https://api.aniverse.nl` \n\n### Catatan\n- Semua endpoint di sini bersifat **publik** (tidak perlu autentikasi)\n- `slug` bisa berupa slug (misal: `naruto`) \n\n### Contoh Implementasi\n- API ini digunakan pada `https://aniverse.nl`\n Bisa digunakan sebagai rerensi.",
     "version": "1.0.0",
     "contact": {
       "name": "Noname"
